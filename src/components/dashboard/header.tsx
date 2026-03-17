@@ -1,12 +1,23 @@
-import { createClient } from "@/lib/supabase/server";
 import { Bell } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export async function DashboardHeader() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Étudiant";
-  const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+  let name = "Étudiant";
+  let initials = "ET";
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    try {
+      const { createClient } = await import("@/lib/supabase/server");
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Étudiant";
+        initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+      }
+    } catch {
+      // Supabase not configured
+    }
+  }
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 md:px-6 py-4 flex items-center justify-between">
